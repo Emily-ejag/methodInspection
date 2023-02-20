@@ -1,0 +1,239 @@
+---
+title: "Stats Homework 1"
+output: pdf_document
+---
+Scenario: As a researcher you are interested in understanding how two methods of inspecting code work. One method uses a checklist, and the other is a method called perspective-based reading (PBR). We have provide simulated data for an experiment comparing these inspections methods (Note: Be sure to download a local copy of the dataset before proceeding).
+
+```{r}
+require(ggplot2)
+```
+
+```{r setup, echo=T, results='hide', error=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+
+library(Sleuth3) # example datasets from textbook, "The Statistical Sleuth - A Course in 
+# Methods of Data Analysis (3rd Edition)"
+library(reshape2) # for formatting and aggregation of data frames
+library(ggplot2) # for creating graphs
+library(dplyr) # for data manipulation and clean-up
+library(plotly) # for creating interactive web graphics from ggplot2 graphs
+library(knitr) # required for generating PDF output
+library(modeest) # required for `mfv()` function
+#install.packages('nortest')
+library(nortest)
+install.packages('reshape2')
+library(reshape2)
+```
+
+# Getting help
+To get help in R about a function, for example `boxplot`, type `?boxplot` in the command line.
+
+# Loading the data
+For this part, load the inspection data ("inspection.csv") file located in the assignment folder with this file. 
+
+```{r}
+# code goes here
+Hw1Data <- read.csv("inspection.csv")
+Hw1Data
+
+```
+
+# Plotting
+You would like to know the descriptive statistics of the two inspection methods. Compare the samples via their mean, median, and box-plot distributions.
+
+
+```{r}
+# code goes here
+
+pbr <- c(as.double(as.integer(Hw1Data$pbr)))
+check <-c(as.double(as.integer(Hw1Data$checklist)))
+#typeof(pbr) 
+Pbr <- as.data.frame(pbr)
+Check <- as.data.frame(check)
+#Pbr
+#Check
+```
+
+##pbr descriptive statistics
+
+```{r}
+mean(pbr)
+median(pbr)
+summary(pbr)
+```
+
+##checklist descriptive statistics
+```{r}
+mean(check)
+median(check)
+summary(check)
+
+#print("Pbr median" + median(Hw1Data$pbr))
+#print("Pbr mean = " + mean(Hw1Data$checklist))
+#print("Pbr median" + median(Hw1Data$checklist))
+
+```
+##box plot
+```{r}
+boxplot(pbr,check,
+main = "Pbr & Check boxplot",
+at = c(1,2),
+names = c("pbr", "check"),
+las = 2,
+col = c("pink","purple"),
+border = "black",
+horizontal = FALSE
+)
+
+```
+# Normality
+You want to see if your data is normally distributed. Hint: You can use Shapiro-Wilk or Anderson-Darling. Justify which is more appropriate.
+```{r}
+
+#code goes here
+print("Shapiro-Wilk with pbr")
+shapiro.test(pbr)
+print("Shapiro-Wilk with check")
+shapiro.test(check)
+
+print("Anderson-Darling with pbr")
+ad.test(pbr)
+print("Anderson-Darling with check")
+ad.test(check)
+
+#hist(pbr)
+#hist(check)
+
+
+```
+In both cases the null hypothesis will be accepted because the p-value is greater than 0.05. What I can do to have a better p-value is getting more data.
+If we get the necessary data I will say is more appropriate to use ..........FIND A REASON
+
+# Bootstrapping
+You would like to do "bootstrap" your data to make sure that data parameters are robust. Bootstrapping is a statistical method for estimating the sampling distribution by sampling with replacement from the original sample. Note: You will need to do this to expand your "term project data" to include enough data for analysis.
+
+Bootstrap the data. Then compare and contrast the original dataset with the bootstrap (use descriptive statistics as before).
+
+```{r}
+# Step 1: Randomly re sample data points for each treatment 20000 times  (hint: you can use sample or replicate)
+
+ExpandedPbr <- as.data.frame(c(rep(pbr, len=2000)))
+ExpandedPbr
+
+ExpandedCheck <- as.data.frame(c(rep(check, len=2000)))
+ExpandedCheck
+
+# Step 2: Draw the histogram to compare the original with the bootstrap data for each treatment separately (hint: use `hist`)
+hist(pbr)
+hist(ExpandedPbr$`c(rep(pbr, len = 2000))`)
+
+hist(check)
+hist(ExpandedPbr$`c(rep(pbr, len = 2000))`)
+
+# Step 4: Check the normality of the bootstrapped data.
+
+print("Shapiro-Wilk with Expandedpbr")
+shapiro.test(ExpandedPbr$`c(rep(pbr, len = 2000))`)
+print("Shapiro-Wilk with Expandedcheck")
+shapiro.test(ExpandedCheck$`c(rep(check, len = 2000))`)
+
+print("Anderson-Darling with pbr")
+ad.test(ExpandedPbr$`c(rep(pbr, len = 2000))`)
+print("Anderson-Darling with check")
+ad.test(ExpandedCheck$`c(rep(check, len = 2000))`)
+
+# Step 4: Compare the descriptive statistics of original with the bootstrapped data.
+
+mean(ExpandedPbr$`c(rep(pbr, len = 2000))`)
+median(ExpandedPbr$`c(rep(pbr, len = 2000))`)
+summary(ExpandedPbr$`c(rep(pbr, len = 2000))`)
+
+mean(ExpandedCheck$`c(rep(check, len = 2000))`)
+median(ExpandedCheck$`c(rep(check, len = 2000))`)
+summary(ExpandedCheck$`c(rep(check, len = 2000))`)
+
+boxplot(ExpandedPbr$`c(rep(pbr, len = 2000))`,ExpandedCheck$`c(rep(check, len = 2000))`,
+main = "Pbr & Check boxplot Expanded",
+at = c(1,2),
+names = c("pbr", "check"),
+las = 2,
+col = c("pink","purple"),
+border = "black",
+horizontal = FALSE)
+
+```
+
+In the rest of the HW, we will use the original dataset.
+
+#dataFormatting
+To run statistics you need your data needs to be `reshaped' to look like this:
+"","treatment","time"
+"1","pbr",20
+.....
+"2","checklist",19
+```{r}
+#code goes here (hint: use melt or reshape)
+
+newDataFramepbr <- data.frame(number=c(1:30),pbrid = "pbr",time=pbr)
+newDataFramepbr
+
+newDataFramecheck <- data.frame(number=c(31:60),checkid = "check",time=check)
+newDataFramecheck
+
+newDataFrame <- data.frame(" "=c(newDataFramepbr$number,newDataFramecheck$number),treatment= c(newDataFramepbr$pbrid, newDataFramecheck$checkid),time=c(newDataFramepbr$time, newDataFramecheck$time))
+newDataFrame
+
+#reshapedData <- melt(newDataFrame, id.vars =  c("pbrid","checkid"))
+#reshapedData
+#mdata <- melt(Hw1Data, id=c("", "treatment", "time"))
+
+
+```
+
+# T-tests
+Now you would like to statistically compare the mean time used for two inspection methods. Test and report for significance at 0.05.
+
+a) Perform a two-tailed t-test (assume the variances are equal).
+
+```{r}
+# code goes here
+
+t.test(newDataFrame$time, alternative = "two.sided")
+
+```
+
+b) Perform a one-tailed t-test (assume PBR takes less time than checklist, variances are equal) and check if results are statistically significant.
+
+```{r}
+# code goes here
+
+t.test(Check$check, Pbr$pbr, alternative="less", var.equal=FALSE)
+
+```
+
+c)  Assume that in the study subjects were paired together by experience level and comparisons are done within pairs, and use a paired (two-tailed) t-test to check if the results are statistically significant.
+
+```{r}
+# code goes here
+
+t.test(Check$check, Pbr$pbr, paired=TRUE)
+
+```
+
+d) Re-do parts a,b,c using non-parametric tests instead (Wilcoxon tests, also known as Mann-Whitney) and compare the p-values to what you originally obtained.
+
+```{r}
+# code goes here for all 3 cases
+
+#case a)
+wilcox.test(newDataFrame$time, alternative = "two.sided")
+
+#case b)
+wilcox.test(Check$check, Pbr$pbr, alternative="less", var.equal=FALSE, exact = FALSE)
+
+#case c)
+wilcox.test(Check$check, Pbr$pbr, paired=TRUE, exact = FALSE)
+
+```
+
+```
